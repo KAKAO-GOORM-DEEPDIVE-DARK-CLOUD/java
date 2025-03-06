@@ -9,6 +9,117 @@
 - `Optional<T>`를 반환하면 `null`을 반환하는 방식보다 **명확하고 안전한 코드 작성이 가능**하며, 예외를 던지는 방식보다 **예측 가능하고 사용하기 쉬운 API 설계가 가능**하다.  
 
 ---
+## 예제 코드
+User.java
+```java
+public class User {
+    private String name;
+    private Integer age;
+
+    public User(String name, Integer age) {
+        this.name = name;
+        this.age = age;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public Integer getAge() {
+        return age;
+    }
+}
+```
+UserDB.java
+```java
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+public class UserDB
+{
+    private static final List<User> users = new ArrayList<>();
+
+    static
+    {
+        users.add(new User("이승욱", 27));
+        users.add(new User("홍길동", 30));
+        users.add(new User("침착맨", 22));
+    }
+
+    // User 객체를 반환하는 메서드 (null이 반환될 수 있음)
+    public static User getUser(String name)
+    {
+        for (User user : users)
+        {
+            if (user.getName().equals(name)) return user;
+        }
+        return null; // 없을 경우 null 반환
+    }
+
+    // Optional<User>을 반환하는 메서드
+    public static Optional<User> findUser(String name)
+    {
+        for (User user : users)
+        {
+            if (user.getName().equals(name)) return Optional.of(user); // Optional로 감싸서 반환
+            // Optional.of(user) 에서 user가 null이면 NPE 발생
+        }
+        return Optional.empty(); // 사용자가 없으면 빈 Optional 반환
+    }
+
+}
+
+```
+Exercise.java
+```java
+import java.util.Optional;
+
+public class Exercise
+{
+    public static void main(String[] args)
+    {
+        // getUser() 사용 (null 가능)
+        User user1 = UserDB.getUser("이승욱");
+
+        User user2 = UserDB.getUser("ㅁㄴㅇㄹㅁㄴㅇㄹ");
+        System.out.println(user2.getAge()); // NPE 발생
+
+        User user3 = UserDB.getUser("ㅁㄴㅇㄹㅁㄴㅇㄹ");
+        if (user3 != null) System.out.println(user3.getName() + " - " + user3.getAge());
+        else System.out.println("User not found");
+
+        // 리턴 타입 자체가 Optional 이라서 null 값이 반환될 수 있음을 알기 쉽다.
+        UserDB.findUser("ㅁㄴㅇㄹㅁㄴㅇㄹ");
+
+        Optional.ofNullable(UserDB.getUser("ㅁㄴㅇㄹㅁㄴㅇㄹ")); // 빈 optional 반환
+
+        // findUser() 사용 (Optional)
+        Optional<User> findUser = UserDB.findUser("홍길동");
+        if (findUser.isPresent()) // 빈 optional 이 아닐 때
+        {
+            User user4 = findUser.get();
+            System.out.println(user4.getName() + " - " + user4.getAge());
+        }
+        if(findUser.isEmpty()) // 빈 optional 일 때
+        {
+            System.out.println("User not found");
+        }
+
+        // 옵셔널을 이용한 기본값 설정
+        // findUser()를 이용한 기본값 설정(예외 X) -> 예외 생성 비용이 들지 않음
+        User defaultUser = UserDB.findUser("ㅁㄴㅇㄹㅁㄴㅇ").orElse(new User("알 수 없음", 0));
+        System.out.println(defaultUser.getName() + " - " + defaultUser.getAge());
+
+        // 값이 없으면 예외 발생
+        UserDB.findUser("ㅁㄴㅇㄹㅁㄴㅇ").orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
+        Optional<User> result = UserDB.findUser("ㅁㄴㅇㄹㅁㄴㅇㄹ"); // 빈 optional 반환
+        System.out.println(result.get().getAge());// 빈 optional 을 벗기면 NULL 이고 null에 접근하는 순간 NoSuchELementException
+
+    }
+}
+```
 
 ## 옵셔널 반환을 고려할 때 주의할 점  
 
