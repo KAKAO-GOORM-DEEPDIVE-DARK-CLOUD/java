@@ -13,32 +13,116 @@
 ## 옵셔널 반환을 고려할 때 주의할 점  
 
 ### 1. Optional을 활용한 값 반환  
-✅ 예외를 던지는 대신 `Optional.empty()`를 반환하는 것이 낫다.  
-✅ `Optional.of(value)`를 사용할 때 `null`을 넣으면 `NullPointerException`이 발생하므로 주의해야 한다.  
-✅ `Optional.ofNullable(value)`를 사용하면 `null`을 `Optional.empty()`로 안전하게 변환할 수 있지만, **가능하면 메서드의 반환 타입을 Optional<T>로 선언하여 `null`을 직접 다루지 않도록 하는 것이 바람직하다.**  
+✅ null을 반환하는 대신 `Optional.empty()`를 반환하는 것이 낫다.
+```java
+return null; // X
 
-### 2. 스트림을 활용한 최적화  
-✅ `Stream API`를 이용하면 `max()` 등의 연산에서 `Optional`을 자연스럽게 반환할 수 있다.  
-✅ `Collection`에서 최댓값을 찾는 경우, `Optional<T>`를 반환하면 `null` 체크 없이 간결한 코드 작성이 가능하다.  
+return Optional.empty(); // O
+```
+<br>
 
-### 3. 옵셔널을 활용한 기본값 설정  
+✅ `Optional.of(value)`를 사용할 때 `null`을 넣으면 `NullPointerException`이 발생하므로 주의해야 한다.
+```java
+public static String getName() {
+    return null; // null 반환
+}
+
+public static void main(String[] args) {
+    Optional<String> name = Optional.of(getName()); // NullPointerException 발생
+}
+
+```
+<br>
+
+✅ `Optional.ofNullable(value)`를 사용하면 `null`을 `Optional.empty()`로 안전하게 변환할 수 있다.
+- Optional.ofNullable(value)는 null 값도 허용하는 Optional이다.
+- 즉, value가 null이면 Optional.empty()를 반환하고, value가 null이 아니면 Optional.of(value)를 반환한다.
+```java
+Optional.ofNullable(UserDB.getUser("ㅁㄴㅇㄹㅁㄴㅇㄹ")); // 빈 optional 반환
+
+Optional.ofNullable(UserDB.getUser("이승욱")); // 값이 있는 optional 반환
+```
+<br>
+
+### 2. 옵셔널을 활용한 기본값 설정  
 ✅ `.orElse("기본값")`을 사용하여 기본값을 제공할 수 있다.  
+```java
+// 옵셔널을 이용한 기본값 설정
+// findUser()를 이용한 기본값 설정(예외 X) -> 예외 생성 비용이 들지 않음
+User defaultUser = UserDB.findUser("ㅁㄴㅇㄹㅁㄴㅇ").orElse(new User("알 수 없음", 0));
+```
+<br>
+
 ✅ `.orElseThrow()`를 활용하면 원하는 예외를 던질 수 있다.  
-✅ `.get()`을 사용하면 값이 없을 경우 `NoSuchElementException`이 발생하므로, 반드시 값이 존재한다고 확신하는 경우에만 사용해야 한다.  
+```java
+// 값이 없으면 예외 발생
+UserDB.findUser("ㅁㄴㅇㄹㅁㄴㅇ").orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+```
+<br>
 
-### 4. 옵셔널을 활용한 안전한 연산  
-✅ `.isPresent()`를 사용하여 값이 존재하는지 확인할 수 있지만, **가능하면 `.map()`이나 `.orElse()` 같은 메서드로 대체하는 것이 좋다.**  
-✅ `.map()`을 사용하면 `Optional<T>` 내부의 값을 변환할 수 있으며, `.flatMap()`을 활용하면 중첩된 `Optional<T>`를 처리할 수 있다.  
+✅ `.get()`을 사용하면 값이 없을 경우 `NoSuchElementException`이 발생하므로, 반드시 값이 존재한다고 확신하는 경우에만 사용해야 한다. 
+```java
+Optional<User> result = UserDB.findUser("ㅁㄴㅇㄹㅁㄴㅇㄹ"); // 빈 optional 반환
+System.out.println(result.get().getAge());// 빈 optional 을 벗기면 NULL 이고 null에 접근하는 순간 NoSuchELementException
 
-### 5. 옵셔널을 잘못 사용하는 사례  
-❌ `Optional<T>`를 **컬렉션, 배열, 키-값 맵의 키 또는 값으로 사용하는 것은 적절하지 않다.**  
+//그래서 아래와 같이 사용할 수도 있다.
+// findUser() 사용 (Optional)
+Optional<User> findUser = UserDB.findUser("홍길동");
+if (findUser.isPresent()) // 빈 optional 이 아닐 때
+{
+    User user4 = findUser.get();
+    System.out.println(user4.getName() + " - " + user4.getAge());
+}
+```
+<br>
+
+### 3. 옵셔널을 활용한 안전한 연산  
+✅ `.isPresent()`를 사용하여 값이 존재하는지 확인할 수 있지만, **가능하면 `.orElseThrow(), .orElse(), orElseGet()` 같은 메서드로 대체하는 것이 좋다.** 
+- 이유는 Optional의 장점을 제대로 활용하지 못하고, 전통적인 null 체크 코드처럼 사용하게 되기 때문임.
+<br>
+
+참고 orElseGet 사용 예제
+```java
+User user1 = UserDB.findUser("이승욱")
+                           .orElseGet(() -> new User("Guest", 0)); // ✅ 기본값 동적 생성
+System.out.println(user1.getName() + " / " + user1.getAge());
+
+User user2 = UserDB.findUser("없는유저") // 없는 유저 조회
+                   .orElseGet(() -> new User("Guest", 0)); // ✅ 기본값 동적 생성
+System.out.println(user2.getName() + " / " + user2.getAge());
+```
+  
+
+### 4. 옵셔널을 잘못 사용하는 사례  
 ❌ 성능이 중요한 상황에서는 `Optional<T>`를 남용하면 **불필요한 객체 할당으로 인해 성능 저하가 발생할 수 있다.**  
-✅ 박싱된 기본 타입을 감싼 `Optional<Integer>`보다는 `OptionalInt` 같은 기본형 전용 클래스를 사용하는 것이 더 효율적이다.  
+-> optional 도 엄연히 새로 할당하고 초기화해야 하는 객체이고 , 그 안에서 값을 꺼내려면 메서드를 호출해야 하니 한 단계를 더 거치는 셈
+<br>
+
+✅ 박싱된 기본 타입을 감싼 `Optional<Integer>`보다는 `OptionalInt` 같은 기본형 전용 클래스를 사용하는 것이 더 효율적이다. 
+- int, Long,double 전용 옵셔널 클래스들이 이미 존재한다.
+- '덜 중요한 기본 타입' 용인 Boolean, Byte, Character, Short, Float은 없다고 한다.
+```java
+import java.util.OptionalInt;
+
+public class Main {
+    public static void main(String[] args) {
+        OptionalInt presentValue = OptionalInt.of(42); // ✅ 값이 존재하는 OptionalInt
+        OptionalInt emptyValue = OptionalInt.empty();  // ✅ 값이 없는 OptionalInt
+
+        // 값이 있을 때 가져오기
+        System.out.println(presentValue.getAsInt()); // 42
+
+        // 값이 없을 때 기본값 설정
+        System.out.println(emptyValue.orElse(100)); // 100
+
+        // 값이 없을 때 동적으로 값 생성
+        System.out.println(emptyValue.orElseGet(() -> (int) (Math.random() * 100))); // 동적 기본값 생성
+    }
+}
+
+```
 
 ---
 
 ## 핵심 정리  
-✔ 값이 없을 가능성이 있는 메서드는 `Optional<T>`를 반환하는 것이 유용하다.  
-✔ 그러나 성능이 중요한 경우에는 `null`을 반환하는 것이 더 나을 수도 있다.  
-✔ `Optional<T>`는 반환 값으로만 사용해야 하며, **필드나 컬렉션 요소로 사용하는 것은 바람직하지 않다.**  
-✔ `Optional<T>`를 적절히 활용하면 **`null`과 예외 처리를 최소화하면서 가독성과 안정성을 높일 수 있다.**  
+값을 반환하지 못할 가능성이 있고 , 호출할 때마다 반환값이 없을 가능성을 염두에 둬야하는 메서드라면 옵셔널을 반환해야 할 상황일 수 있다. 하지만 옵셔널 반환에는 성능 저하가 뒤따르니 , 성능에 민감한 메서드라면 null 을 반환하거나 예외를 던지는 편이 나을수 있다. 그리고 옵셔널을 반환값 이외의 용도로 쓰는 경우는 매우 드물다.
