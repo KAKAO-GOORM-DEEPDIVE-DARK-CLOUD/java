@@ -1,10 +1,14 @@
 # Optional<T>
 
+<img width="765" alt="image" src="https://github.com/user-attachments/assets/c080a7f3-d252-4c0c-a4a4-8f344e3b28bc" />
+
 ## 1. 기존 방식의 문제점  
-- Java 8 이전에는 메서드가 특정 조건에서 값을 반환할 수 없을 때, **예외를 던지거나 `null`을 반환**하는 방식이 일반적이었다.  
+- 전통적인 방식에서 메서드가 특정 조건에서 값을 반환할 수 없을 때, **예외를 던지거나 `null`을 반환**하는 방식이 일반적이었다.  
 - 그러나 `null`을 반환하면 호출하는 측에서 **별도의 `null` 체크 코드가 필요**하며, 이를 누락하면 `NullPointerException`이 발생할 위험이 있다.  
 
 ## 2. `Optional<T>`의 도입  
+<img width="768" alt="image" src="https://github.com/user-attachments/assets/3fe26366-20cb-46d0-8f64-70286f5b1f7d" />
+
 - Java 8 이후, **`Optional<T>`가 도입**되어 `null`을 직접 반환하는 대신, **값이 있을 수도 없을 수도 있는 경우를 안전하게 표현**할 수 있게 되었다.  
 - `Optional<T>`를 반환하면 `null`을 반환하는 방식보다 **명확하고 안전한 코드 작성이 가능**하며, 예외를 던지는 방식보다 **예측 가능하고 사용하기 쉬운 API 설계가 가능**하다.  
 
@@ -156,7 +160,9 @@ Optional.ofNullable(UserDB.getUser("이승욱")); // 값이 있는 optional 반�
 <br>
 
 ### 2. 옵셔널을 활용한 기본값 설정  
-✅ `.orElse("기본값")`을 사용하여 기본값을 제공할 수 있다.  
+✅ `.orElse("기본값")`을 사용하여 기본값을 제공할 수 있다. 
+<img width="757" alt="image" src="https://github.com/user-attachments/assets/de56506b-85c7-4942-9a03-9484e3915385" />
+
 ```java
 // 옵셔널을 이용한 기본값 설정
 // findUser()를 이용한 기본값 설정(예외 X) -> 예외 생성 비용이 들지 않음
@@ -171,7 +177,9 @@ UserDB.findUser("ㅁㄴㅇㄹㅁㄴㅇ").orElseThrow(() -> new RuntimeException(
 ```
 <br>
 
-✅ `.get()`을 사용하면 값이 없을 경우 `NoSuchElementException`이 발생하므로, 반드시 값이 존재한다고 확신하는 경우에만 사용해야 한다. 
+✅ `.get()`을 사용하면 값이 없을 경우 `NoSuchElementException`이 발생하므로, 반드시 값이 존재한다고 확신하는 경우에만 사용해야 한다.
+<img width="778" alt="image" src="https://github.com/user-attachments/assets/1fa5aa24-4c8c-4a04-bae7-080e2bcb744e" />
+
 ```java
 Optional<User> result = UserDB.findUser("ㅁㄴㅇㄹㅁㄴㅇㄹ"); // 빈 optional 반환
 System.out.println(result.get().getAge());// 빈 optional 을 벗기면 NULL 이고 null에 접근하는 순간 NoSuchELementException
