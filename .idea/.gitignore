@@ -1,0 +1,23 @@
+# Default ignored files
+/shelf/
+/workspace.xml
+# Editor-based HTTP Client requests
+/httpRequests/
+# Datasource local storage ignored files
+/dataSources/
+/dataSources.local.xml
+
+# IntelliJ IDEA 설정 폴더 제외
+.idea/
+
+# 빌드 및 실행 파일 제외
+out/
+build/
+target/
+
+# IntelliJ 프로젝트 파일 제외 (.iml)
+*.iml
+
+# OS별 불필요한 파일 제외
+.DS_Store
+Thumbs.db
